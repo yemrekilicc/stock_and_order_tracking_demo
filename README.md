@@ -2,6 +2,6 @@
 
 Flutter application developed for Android and Web platforms with stock and order tracking.
 
-web app link: https://siparistakipdemo.web.app/#/createorder
+web app link: https://siparistakipdemo.web.app
 
 
