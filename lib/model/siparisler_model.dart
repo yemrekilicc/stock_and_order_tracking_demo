@@ -50,7 +50,8 @@ class Siparisler {
     isDone: json["isDone"],
     date: json["date"],
     musteriId: json["musteriId"],
-    partialOrder: json["partialOrder"]??=0
+    partialOrder: json["partialOrder"]??=0,
+    musteriName: json["musteriName"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -66,5 +67,6 @@ class Siparisler {
     "date":date,
     "musteriId":musteriId,
     "partialOrder":partialOrder,
+    "musteriName":musteriName,
   };
 }

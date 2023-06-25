@@ -40,6 +40,7 @@ class SplashViewModel extends BaseViewModel {
           }
           else{
             NavigationService.instance.pushReplacementNamed(path: NavigationConstants.MAINSCREEN);
+
             // await Querys.instance.createcesit();
             // await Querys.instance.createebat();
             // await Querys.instance.createsube();

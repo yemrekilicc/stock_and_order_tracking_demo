@@ -14,7 +14,7 @@ class OrdersViewModel extends BaseViewModel {
   ScrollController siparislerController=ScrollController();
   List<Siparisler> musterilerveSiparislerSuggestion = [];
   List<Siparisler> orjList = [];
-  late Future<List<Siparisler>> siparisler;
+  //late Future<List<Siparisler>> siparisler;
   int popUpMenuValue= 0;
   bool isDescending = true;
   bool isWaiting = false;
@@ -29,6 +29,7 @@ class OrdersViewModel extends BaseViewModel {
   // int whichEbat = -1;
   AsyncSnapshot<List<Siparisler>> lastSnapshot = const AsyncSnapshot.nothing();
   ScrollController scrollController = ScrollController();
+
   @override
   Future<FutureOr<void>> init() async {
     if (!isInitialized) {
@@ -38,8 +39,8 @@ class OrdersViewModel extends BaseViewModel {
     for(var element in CustomText.tableHierarchy){
       filterSelection["selected${element["tableValueName"]}"]=-1;
     }
-    siparisler = Querys.instance.readMusterilerAndSiparisler();
-    orjList=List.of(await siparisler);
+    //siparisler = Querys.instance.readMusterilerAndSiparisler();
+    //orjList=List.of(await siparisler);
     saat=DateTime.now().hour.toString()+":"+
         (DateTime.now().minute.toString().length==1?"0${DateTime.now().minute.toString()}":DateTime.now().minute.toString())+":"+
         (DateTime.now().second.toString().length==1?"0${DateTime.now().second.toString()}":DateTime.now().second.toString());
@@ -52,6 +53,8 @@ class OrdersViewModel extends BaseViewModel {
 
   @override
   void disposeFunction() {}
+
+
   sortAsc(bool value) async {
     isDescending = value;
     await sortAndFilter();
@@ -60,24 +63,31 @@ class OrdersViewModel extends BaseViewModel {
   filterDone(int value) async {
     isDone = value;
     await sortAndFilter();
+    notifyListeners();
   }
 
   filter(int value,String tableName) async {
     filterSelection["selected$tableName"]=value;
     await sortAndFilter();
+    notifyListeners();
   }
 
 
-  Future<List<Siparisler>> reloadMusterilerveSiparisler() async {
-    saat=DateTime.now().hour.toString()+":"+
-        (DateTime.now().minute.toString().length==1?"0${DateTime.now().minute.toString()}":DateTime.now().minute.toString())+":"+
-        (DateTime.now().second.toString().length==1?"0${DateTime.now().second.toString()}":DateTime.now().second.toString());
-    siparisler = Querys.instance.readMusterilerAndSiparisler();
-    orjList=List.of(await siparisler);
-    search();
-    sortAndFilter();
+  // Future<List<Siparisler>> reloadMusterilerveSiparisler() async {
+  //   saat=DateTime.now().hour.toString()+":"+
+  //       (DateTime.now().minute.toString().length==1?"0${DateTime.now().minute.toString()}":DateTime.now().minute.toString())+":"+
+  //       (DateTime.now().second.toString().length==1?"0${DateTime.now().second.toString()}":DateTime.now().second.toString());
+  //   siparisler = Querys.instance.readMusterilerAndSiparisler();
+  //   orjList=List.of(await siparisler);
+  //   search();
+  //   sortAndFilter();
+  //
+  //   return siparisler;
+  // }
 
-    return siparisler;
+  searchSortAndFilter(){
+    sortAndFilter();
+    notifyListeners();
   }
 
   sortAndFilter() {
@@ -123,7 +133,7 @@ class OrdersViewModel extends BaseViewModel {
         PartialOrderListLists[i]=[];
       }
     }
-    notifyListeners();
+    //notifyListeners();
   }
 
   setData() {
@@ -142,13 +152,13 @@ class OrdersViewModel extends BaseViewModel {
 
   Future<void> deleteSiparis(Siparisler siparis) async {
     Querys.instance.deleteSiparis(siparis);
-    await reloadMusterilerveSiparisler();
+    //await reloadMusterilerveSiparisler();
   }
 
   Future<void> updateSiparis(Siparisler siparis) async {
     siparis.isDone = !siparis.isDone;
     await Querys.instance.changeStatusSiparis(siparis);
-    await reloadMusterilerveSiparisler();
+    //await reloadMusterilerveSiparisler();
   }
 
   Future<void> updatePartialOrderSiparis(Siparisler siparis,int index,int listIndex) async {
@@ -167,7 +177,7 @@ class OrdersViewModel extends BaseViewModel {
     }
     await Querys.instance.changeStatusPartialOrderSiparis(siparis,PartialOrderListLists[listIndex][index]);
     //await Querys.instance.changeStatusSiparis(siparis);
-    await reloadMusterilerveSiparisler();
+    //await reloadMusterilerveSiparisler();
   }
 
   showDeleteDialog(BuildContext context, Siparisler siparis) {
@@ -216,7 +226,7 @@ class OrdersViewModel extends BaseViewModel {
         path: NavigationConstants.CREATEORDER,
         data: musterilerveSiparislerSuggestion[index],
       ).then((value) {
-        reloadMusterilerveSiparisler();
+        //reloadMusterilerveSiparisler();
         //notifyListeners();
       });
     }

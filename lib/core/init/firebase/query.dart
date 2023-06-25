@@ -22,6 +22,13 @@ class Querys {
             return Musteriler.fromJson(data);
           }).toList());
 
+  Stream<List<Siparisler>> readSiparislerStream() => _siparislerQuery
+      .snapshots()
+      .map((snapshot) => snapshot.docs.map((doc) {
+    var data = doc.data();
+    return Siparisler.fromJson(data);
+  }).toList());
+
   // Future<List<Musteriler>> readMusterilerr()async {
   //   var musteriler=await _musterilerQuery.get();
   //
@@ -494,12 +501,13 @@ class Querys {
   }
 
   Future saveSiparis(
-      List<Siparisler> siparisler, String musteriId) async {
+      List<Siparisler> siparisler, Musteriler musteri) async {
     final batch = FirebaseFirestore.instance.batch();
     siparisler.forEach((siparis) {
       final ref = _siparislerQuery.doc();
       siparis.id = ref.id;
-      siparis.musteriId=musteriId;
+      siparis.musteriId=musteri.id;
+      siparis.musteriName=musteri.adi;
       siparis.date=DateTime.now().millisecondsSinceEpoch;
       siparis.kaydeden=UserModel.instance.name;
       final json = siparis.toJson();

@@ -191,7 +191,7 @@ class CreateOrderViewModel extends BaseViewModel {
   }
 
   Future<void> saveSiparisler() async {
-    Querys.instance.saveSiparis(siparisler, selectedMusteri!.id!);
+    Querys.instance.saveSiparis(siparisler, selectedMusteri!);
   }
 
   selectMusteri(String suggestion, List<Musteriler> snapshotData) {

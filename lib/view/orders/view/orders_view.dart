@@ -5,6 +5,7 @@ import 'package:siparis_takip_demo/core/constants/color_constants.dart';
 import 'package:siparis_takip_demo/core/constants/size_constants.dart';
 import 'package:siparis_takip_demo/core/constants/text_constants.dart';
 import 'package:siparis_takip_demo/core/extensions/context_extansion.dart';
+import 'package:siparis_takip_demo/core/init/firebase/query.dart';
 import 'package:siparis_takip_demo/core/utils/drawers/filter_order_drawer.dart';
 import 'package:siparis_takip_demo/core/utils/drawers/navigation_drawer.dart';
 import 'package:siparis_takip_demo/model/siparisler_model.dart';
@@ -48,8 +49,9 @@ class OrdersView extends StatelessWidget {
                             child: TextField(
                               style: const TextStyle(fontSize: 20),
                               controller: viewModel.searchController,
-                              onChanged: (input) {
-                                viewModel.sortAndFilter();
+                              onSubmitted: (value) {
+                                viewModel.searchSortAndFilter();
+
                               },
                               decoration: InputDecoration(
                                 contentPadding: EdgeInsets.zero,
@@ -57,6 +59,13 @@ class OrdersView extends StatelessWidget {
                                 fillColor: ColorConstants
                                     .instance.textFieldBackgroundColor,
                                 prefixIcon: const Icon(Icons.search),
+                                suffixIcon: viewModel.searchController.text!=""?IconButton(
+                                  icon: Icon(Icons.clear),
+                                  onPressed: () {
+                                    viewModel.searchController.text="";
+                                    viewModel.searchSortAndFilter();
+                                  },
+                                ):null,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(20),
                                   borderSide: BorderSide.none,
@@ -85,11 +94,12 @@ class OrdersView extends StatelessWidget {
                   elevation: 0,
                   iconTheme: const IconThemeData(color: Colors.white),
                   actions: [
-                    IconButton(
-                        onPressed: () => viewModel.reloadMusterilerveSiparisler(),
-                        icon: const Icon(
-                          Icons.replay,
-                        ))
+                    // IconButton(
+                    //     onPressed: () => //viewModel.reloadMusterilerveSiparisler()
+                    //     ,
+                    //     icon: const Icon(
+                    //       Icons.replay,
+                    //     ))
                   ],
                 ),
                 key: viewModel.scaffoldKey,
@@ -110,20 +120,7 @@ class OrdersView extends StatelessWidget {
   }
 
   Widget buildBody(OrdersViewModel viewModel, BuildContext context) {
-    return FutureBuilder<List<Siparisler>>(
-      future: viewModel.siparisler,
-      builder: (context, AsyncSnapshot<List<Siparisler>> snapshot) {
-        Future.delayed(Duration.zero, () {
-          if (snapshot.hasData) {
-            if (snapshot != viewModel.lastSnapshot) {
-              viewModel.orjList = List.of(snapshot.data!);
-              viewModel.setData();
-              viewModel.lastSnapshot = snapshot;
-            }
-          }
-        });
-
-        return Center(
+    return Center(
           child: Column(
             children: [
               if(!context.isWideScreen)...[
@@ -156,6 +153,13 @@ class OrdersView extends StatelessWidget {
                               viewModel.sortAndFilter();
                             },
                             decoration: InputDecoration(
+                              suffixIcon: viewModel.searchController.text!=""?IconButton(
+                                icon: Icon(Icons.clear),
+                                onPressed: () {
+                                  viewModel.searchController.text="";
+                                  viewModel.searchSortAndFilter();
+                                },
+                              ):null,
                               contentPadding: EdgeInsets.zero,
                               filled: true,
                               fillColor: ColorConstants
@@ -210,76 +214,157 @@ class OrdersView extends StatelessWidget {
                 ),
               )
               ],
-              if (snapshot.connectionState == ConnectionState.waiting) ...[
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: CircularProgressIndicator(),
-                ),
-              ] else if (snapshot.connectionState ==
-                  ConnectionState.done) ...[
-                if (snapshot.hasError) ...[
-                  const Text("hata oluştu")
-                ] else if (snapshot.hasData) ...[
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxWidth: SizeConstant.instance!.wideScreenWidth),
+              StreamBuilder(
+                stream: Querys.instance.readSiparislerStream() ,
+                builder: (context, snapshot) {
+                  if(snapshot.hasData){
+                    viewModel.orjList=snapshot.data!;
+                    viewModel.setData();
+                  }
+                  if(snapshot.connectionState == ConnectionState.waiting){
+                      return const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: CircularProgressIndicator(),
+                      );
+                  }
+                  else if(snapshot.connectionState ==ConnectionState.active){
+                    if(snapshot.hasError){
+                      return const Text("hata oluştu");
+                    }
+                    else if(snapshot.hasData){
+                          return Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                      maxWidth: SizeConstant.instance!.wideScreenWidth,maxHeight: 40),
 
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Text(
-                            "siparis sayısı : ${viewModel.getSiparisCount()}",
-                            style: const TextStyle(fontSize: 18),
-                          ),
-                        ),
-                        FittedBox(
-                          fit: BoxFit.fitWidth,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Text(viewModel.saat,
-                              style: const TextStyle(fontSize: 18),),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                          maxWidth: SizeConstant.instance!.wideScreenWidth-100),
-                      child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        scrollDirection: Axis.vertical,
-                        controller: viewModel.siparislerController,
-                        key: const PageStorageKey<String>('page'),
-                        itemCount: viewModel
-                            .musterilerveSiparislerSuggestion.length,
-                        shrinkWrap: true,
-                        itemBuilder: (BuildContext context, int index) {
-                          return SiparisCard(
-                            viewModel: viewModel,
-                            siparis: viewModel
-                                .musterilerveSiparislerSuggestion[index],
-                            index: index,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        alignment: Alignment.centerLeft,
+                                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                                        child: Text(
+                                          "siparis sayısı : ${viewModel.getSiparisCount()}",
+                                          style: const TextStyle(fontSize: 18),
+                                        ),
+                                      ),
+                                      // FittedBox(
+                                      //   fit: BoxFit.fitWidth,
+                                      //   child: Container(
+                                      //     padding: const EdgeInsets.symmetric(horizontal: 20),
+                                      //     child: Text(viewModel.saat,
+                                      //       style: const TextStyle(fontSize: 18),),
+                                      //   ),
+                                      // ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                        maxWidth: SizeConstant.instance!.wideScreenWidth-100),
+                                    child: ListView.builder(
+                                      physics: const AlwaysScrollableScrollPhysics(),
+                                      scrollDirection: Axis.vertical,
+                                      controller: viewModel.siparislerController,
+                                      key: const PageStorageKey<String>('page'),
+                                      itemCount: viewModel
+                                          .musterilerveSiparislerSuggestion.length,
+                                      shrinkWrap: true,
+                                      itemBuilder: (BuildContext context, int index) {
+                                        return SiparisCard(
+                                          viewModel: viewModel,
+                                          siparis: viewModel
+                                              .musterilerveSiparislerSuggestion[index],
+                                          index: index,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           );
-                        },
-                      ),
-                    ),
-                  )
-                ] else ...[
-                  const Text("...")
-                ]
-              ] else ...[
-                Text('State: ${snapshot.connectionState}')
-              ]
+                    }
+                    else{
+                      return const Text("...");
+                    }
+                  }else {
+                    return Text('State: ${snapshot.connectionState}');
+                  }
+                },
+              )
+              // if (snapshot.connectionState == ConnectionState.waiting) ...[
+              //   return const Padding(
+              //     padding: EdgeInsets.all(8.0),
+              //     child: CircularProgressIndicator(),
+              //   ),
+              // ] else if (snapshot.connectionState ==
+              //     ConnectionState.active) ...[
+              //   if (snapshot.hasError) ...[
+              //     return const Text("hata oluştu")
+              //   ] else if (snapshot.hasData) ...[
+              //     return ConstrainedBox(
+              //       constraints: BoxConstraints(
+              //           maxWidth: SizeConstant.instance!.wideScreenWidth),
+              //
+              //       child: Row(
+              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //         children: [
+              //           Container(
+              //             alignment: Alignment.centerLeft,
+              //             padding: const EdgeInsets.symmetric(horizontal: 20),
+              //             child: Text(
+              //               "siparis sayısı : ${viewModel.getSiparisCount()}",
+              //               style: const TextStyle(fontSize: 18),
+              //             ),
+              //           ),
+              //           FittedBox(
+              //             fit: BoxFit.fitWidth,
+              //             child: Container(
+              //               padding: const EdgeInsets.symmetric(horizontal: 20),
+              //               child: Text(viewModel.saat,
+              //                 style: const TextStyle(fontSize: 18),),
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //     Expanded(
+              //       child: ConstrainedBox(
+              //         constraints: BoxConstraints(
+              //             maxWidth: SizeConstant.instance!.wideScreenWidth-100),
+              //         child: ListView.builder(
+              //           physics: const AlwaysScrollableScrollPhysics(),
+              //           scrollDirection: Axis.vertical,
+              //           controller: viewModel.siparislerController,
+              //           key: const PageStorageKey<String>('page'),
+              //           itemCount: viewModel
+              //               .musterilerveSiparislerSuggestion.length,
+              //           shrinkWrap: true,
+              //           itemBuilder: (BuildContext context, int index) {
+              //             return SiparisCard(
+              //               viewModel: viewModel,
+              //               siparis: viewModel
+              //                   .musterilerveSiparislerSuggestion[index],
+              //               index: index,
+              //             );
+              //           },
+              //         ),
+              //       ),
+              //     )
+              //   ] else ...[
+              //     return const Text("...")
+              //   ]
+              // ] else ...[
+              //   return Text('State: ${snapshot.connectionState}')
+              // ]
             ],
           ),
         );
-      },
-    );
   }
 }
 

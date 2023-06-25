@@ -105,7 +105,6 @@ class navigationDrawer extends StatelessWidget {
           titleText: "İSTATİSTİKLER",
           icon: Icons.pie_chart_outline,
         ),
-        if(UserModel.instance.isAdmin)...[
           menuListTile(
             context: context,
             viewModel: viewModel,
@@ -113,7 +112,6 @@ class navigationDrawer extends StatelessWidget {
             titleText: "AYARLAR",
             icon: Icons.settings,
           ),
-        ],
         const Divider(height: 5,),
         ListTile(
           leading: const Icon(Icons.exit_to_app_outlined, size: 30,),
